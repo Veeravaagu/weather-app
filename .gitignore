@@ -1,8 +1,5 @@
 /node_modules/
-.prettierignore/
-.prettierrc/
-.eslintrc.json/
-package-lock.json/
+
 
 
 

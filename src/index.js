@@ -1,13 +1,13 @@
-import getWeather from './weather';
+import fetchWeatherData from './weather';
 
-function runProgram() {
+function initializeProgram() {
   const search = document.getElementById('search');
   const isEnter = document.querySelector('.display-container');
-  search.addEventListener('click', () => getWeather());
+  search.addEventListener('click', () => fetchWeatherData());
   isEnter.addEventListener('keypress', (event) => {
     if(event.key === 'Enter'){
-        getWeather();
+        fetchWeatherData();
     }
   })
 }
-runProgram();
+initializeProgram();
