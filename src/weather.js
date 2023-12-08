@@ -8,20 +8,24 @@ function renderCurrentWeather(weatherData){
     forecastInfo.innerHTML = '';
     weatherInfo.innerHTML = '';
 
-    const cityName = weatherData.name;
-    const currentTemperature = weatherData.main.temp;
-    const weatherDescription = weatherData.weather[0].main;
-    const weatherIconCode = weatherData.weather[0].icon;
-    const iconUrl = `https://openweathermap.org/img/wn/${weatherIconCode}@4x.png`; 
-
-    const temperatureHtml = `<p>${currentTemperature}°C</p>`;
-    const weatherHtml = `<p>${cityName}</p>
-                            <p>${weatherDescription}</p>`;
-    temperatureInfo.innerHTML = temperatureHtml;
-    weatherInfo.innerHTML = weatherHtml;
-    weatherIconElement.src = iconUrl;
-    weatherIconElement.alt = weatherDescription;
-        
+    if(weatherData.cod === '404'){
+        weatherInfo.innerHTML = `<p>${weatherData.message}</p>`;
+    }
+    else{
+        const cityName = weatherData.name;
+        const currentTemperature = weatherData.main.temp;
+        const weatherDescription = weatherData.weather[0].main;
+        const weatherIconCode = weatherData.weather[0].icon;
+        const iconUrl = `https://openweathermap.org/img/wn/${weatherIconCode}@4x.png`; 
+    
+        const temperatureHtml = `<p>${currentTemperature}°C</p>`;
+        const weatherHtml = `<p>${cityName}</p>
+                                <p>${weatherDescription}</p>`;
+        temperatureInfo.innerHTML = temperatureHtml;
+        weatherInfo.innerHTML = weatherHtml;
+        weatherIconElement.src = iconUrl;
+        weatherIconElement.alt = weatherDescription;
+    }   
 }
 
 function renderHourlyForecast(hourlyData) {
@@ -53,20 +57,10 @@ export default async function fetchWeatherData() {
 
         const getWeatherApi = await fetch(weatherApiUrl, { mode: 'cors' });
         const getForecastApi = await fetch(forecastApiUrl, { mode: 'cors' });
-
-        if (!getWeatherApi.ok || !getForecastApi.ok) {
-            const weatherInfo = document.getElementById('weather-content');
-            weatherInfo.innerHTML = '<p>Error 404, City Not Found!</p>';
-            throw new Error('City not found!');
-        } else {
-            const responseWeather = await getWeatherApi.json();
-            renderCurrentWeather(responseWeather);
-            console.log(responseWeather, 'weather');
-
-            const responseForecast = await getForecastApi.json();
-            renderHourlyForecast(responseForecast.list);
-            console.log(responseForecast, 'forecast list');
-        }
+        const responseWeather = await getWeatherApi.json();
+        renderCurrentWeather(responseWeather);
+        const responseForecast = await getForecastApi.json();
+        renderHourlyForecast(responseForecast.list);
     } catch (error) {
         console.error(error);
     }
