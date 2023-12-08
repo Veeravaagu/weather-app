@@ -1,0 +1,213 @@
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  background-color: rgb(238, 233, 218);
+}
+
+.todo-list-container {
+  display: grid;
+  grid-template-columns: 20% repeat(2, 1fr);
+  grid-template-rows: 10% 1fr 1fr;
+  width: 100vw;
+  height: 100vh;
+}
+
+.header-container {
+  grid-column: 1 / 4;
+  grid-row: 1 / 2;
+  text-align: center;
+  background-color: rgb(96, 150, 180);
+  color: rgb(238, 233, 218);
+  font-size: 2.5rem;
+  font-weight: 600;
+  padding: 1rem;
+}
+
+.header-element-container {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.sidebar-container {
+  grid-column: 1 / 2;
+  grid-row: 2 / 4;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(147, 191, 207);
+}
+
+.sidebar-task-container,
+.sidebar-project-container {
+  background-color: rgb(147, 191, 207);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.sidebar-task-element:hover p,
+.add-project:hover p {
+  color: rgb(238, 233, 218);
+}
+
+.sidebar-task-container {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+.sidebar-project-container {
+  flex-grow: 1;
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+}
+
+.main-content-container {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  background-color: rgb(189, 205, 214);
+  padding: 1.5rem;
+}
+
+.inbox-add-task {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inbox-add-task h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: rgb(96, 150, 180);
+}
+
+.inbox-task-container {
+  margin-top: 1rem;
+}
+
+.task-form-container {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 1rem;
+}
+
+label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(96, 150, 180);
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid rgb(147, 191, 207);
+  border-radius: 4px;
+  background-color: rgb(189, 205, 214);
+  color: rgb(238, 233, 218);
+}
+
+button {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  background-color: rgb(96, 150, 180);
+}
+
+button:hover {
+  background-color: rgb(147, 191, 207);
+}
+
+.addTaskButton {
+  background-color: rgb(96, 150, 180);
+}
+
+.addTaskButton:hover {
+  background-color: rgb(147, 191, 207);
+}
+
+.deleteButton {
+  background-color: rgb(96, 150, 180);
+}
+
+.deleteButton:hover {
+  background-color: rgb(147, 191, 207);
+}
+
+.inbox-task-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.task-item {
+  flex: 1 0 calc(33.33% - 1rem);
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(189, 205, 214);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.task-item p {
+  margin: 0.5rem 0;
+}
+
+.task-item p strong {
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.task-item button {
+  background-color: rgb(96, 150, 180);
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.task-item button:hover {
+  background-color: rgb(147, 191, 207);
+}
+
+.add-project-container {
+  width: 80%;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.project-name-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 5%;
+}
+
+.page-title > p {
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  background-color: rgb(96, 150, 180);
+  width: 80%;
+}
+
+.page-title > p:hover {
+  background-color: rgb(147, 191, 207);
+  color: rgb(238, 233, 218);
+}
