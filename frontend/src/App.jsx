@@ -29,7 +29,7 @@ export default function App() {
   return (
     <main className="app-shell">
       <section className="hero">
-        <p className="eyebrow">Phase 2 Data Flow</p>
+        <p className="eyebrow">Search for a city to view current conditions and a 7-day forecast.</p>
         <h1>Weather dashboard</h1>
         <p className="intro">
           Search for a city to load current conditions and a normalized 7-day
