@@ -2,11 +2,13 @@ export default function CurrentWeatherSection({ weather, isLoading }) {
   const location = weather?.location;
   const current = weather?.current;
   const temperature =
-    current?.temperature === null ? '--' : Math.round(current.temperature);
+    typeof current?.temperature === 'number'
+      ? Math.round(current.temperature)
+      : '--';
   const feelsLike =
-    current?.feelsLike === null ? '--' : Math.round(current.feelsLike);
+    typeof current?.feelsLike === 'number' ? Math.round(current.feelsLike) : '--';
   const windSpeed =
-    current?.windSpeed === null ? '--' : Math.round(current.windSpeed);
+    typeof current?.windSpeed === 'number' ? Math.round(current.windSpeed) : '--';
 
   return (
     <section className="panel">
