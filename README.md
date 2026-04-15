@@ -1,25 +1,41 @@
 # Weather App
 
 A full-stack weather application with a React frontend and an Express backend.
-It supports city search, current conditions, a 7-day forecast, in-memory TTL
-caching, Chart.js visualizations, and Jest-based test coverage for the frontend
-and backend cache logic.
+Users can search for a city, view current conditions, browse a derived 5-day
+forecast, and explore weather trends through chart visualizations.
+
+The backend keeps third-party API details out of the UI by handling geocoding,
+weather fetching, response normalization, and in-memory TTL caching before data
+reaches the frontend.
 
 ## Features
 
-- City search powered by the backend weather API
-- Current weather summary for the selected city
-- 7-day forecast with daily high, low, and precipitation probability
+- City search with backend-driven weather lookups
+- Current weather summary with temperature, feels-like, humidity, wind, and description
+- Derived 5-day forecast with daily high, low, and precipitation probability
 - Temperature and precipitation charts built with Chart.js
 - In-memory TTL caching for normalized weather responses
+- Loading, error, and empty states across the UI
 - Separate frontend and backend test suites with Jest
 
 ## Tech Stack
 
 - Frontend: React, Vite, Chart.js, `react-chartjs-2`
-- Backend: Node.js, Express, native `fetch`, `dotenv`
-- Testing: Jest, React Testing Library
-- Data source: OpenWeather Geocoding API + One Call API 3.0
+- Backend: Node.js, Express, native `fetch`, `dotenv`, `cors`
+- Testing: Jest, React Testing Library, `jest-dom`
+- Weather data: OpenWeather Geocoding API, Current Weather API, and 5 day / 3 hour Forecast API
+
+## How It Works
+
+1. A user searches for a city in the React app.
+2. The frontend sends the query to the backend `GET /api/weather` route.
+3. The backend resolves the city to coordinates using OpenWeather geocoding.
+4. The backend fetches:
+   - current weather from the free `data/2.5/weather` endpoint
+   - forecast data from the free `data/2.5/forecast` endpoint
+5. The backend normalizes the raw provider responses into a frontend-friendly shape.
+6. The backend caches the normalized payload by normalized city query with TTL metadata.
+7. The frontend renders current weather, forecast rows, and charts from the normalized response.
 
 ## Project Structure
 
@@ -31,11 +47,14 @@ and backend cache logic.
 │   │   ├── routes
 │   │   ├── services
 │   │   └── utils
+│   ├── jest.config.cjs
 │   └── package.json
 ├── frontend
 │   ├── src
 │   │   ├── components
 │   │   └── services
+│   ├── jest.config.cjs
+│   ├── vite.config.js
 │   └── package.json
 └── package.json
 ```
@@ -53,12 +72,10 @@ CLIENT_ORIGIN=http://localhost:5173
 CACHE_TTL_MS=600000
 ```
 
-Variable notes:
-
-- `OPENWEATHER_API_KEY`: required for all weather lookups
+- `OPENWEATHER_API_KEY`: required for weather lookups
 - `PORT`: backend server port
 - `CLIENT_ORIGIN`: allowed frontend origin for CORS
-- `CACHE_TTL_MS`: cache time-to-live in milliseconds
+- `CACHE_TTL_MS`: cache TTL in milliseconds
 
 ### Frontend
 
@@ -82,7 +99,7 @@ cp frontend/.env.example frontend/.env
 
 Then add your OpenWeather API key to `backend/.env`.
 
-## Run the App
+## Run Locally
 
 Start the backend:
 
@@ -96,16 +113,41 @@ Start the frontend in a second terminal:
 npm run frontend:dev
 ```
 
-Frontend default URL:
+Default local URLs:
 
-```text
-http://localhost:5173
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
+## Available Scripts
+
+At the repo root:
+
+- `npm run backend:dev` - start backend in watch mode
+- `npm run backend:start` - start backend without watch mode
+- `npm run frontend:dev` - start frontend dev server
+- `npm run frontend:build` - build the frontend for production
+- `npm run backend:test` - run backend tests
+- `npm run frontend:test` - run frontend tests
+- `npm test` - run backend and frontend tests
+
+## Testing
+
+Run all tests:
+
+```bash
+npm test
 ```
 
-Backend default URL:
+Run only backend tests:
 
-```text
-http://localhost:3001
+```bash
+npm run backend:test
+```
+
+Run only frontend tests:
+
+```bash
+npm run frontend:test
 ```
 
 ## Build
@@ -122,29 +164,28 @@ Run the backend in non-watch mode:
 npm run backend:start
 ```
 
-## Tests
+## API Notes
 
-Run all tests:
+- The backend exposes:
+  - `GET /api/health`
+  - `GET /api/weather?city=<city>`
+- Weather responses are normalized on the backend before reaching the frontend.
+- Cache metadata is included in the backend response to indicate cache hit/miss state.
 
-```bash
-npm test
-```
+## Forecast Derivation Notes
 
-Run frontend tests only:
+This project uses OpenWeather free-plan endpoints, so the forecast is derived
+from 3-hour forecast intervals rather than a paid daily forecast API.
 
-```bash
-npm run frontend:test
-```
+That means:
 
-Run backend tests only:
-
-```bash
-npm run backend:test
-```
+- the app currently returns up to 5 forecast days
+- daily highs and lows are aggregated from 3-hour intervals
+- precipitation probability is derived from the maximum interval probability for a day
+- description and icon are chosen from the forecast entry closest to local noon
 
 ## Notes
 
-- Weather data is normalized on the backend before it reaches the UI.
 - Cache entries are stored in memory and reset when the backend restarts.
 - The app currently uses metric units.
-- OpenWeather One Call 3.0 access is required for 7-day forecast support.
+- If deployed separately, make sure the backend `CLIENT_ORIGIN` matches the active frontend domain to avoid CORS issues.
