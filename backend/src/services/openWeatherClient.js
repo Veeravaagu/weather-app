@@ -41,14 +41,29 @@ async function fetchCoordinatesForCity(city, apiKey) {
   return locations[0];
 }
 
-async function fetchWeatherByCoordinates(location, apiKey) {
+async function fetchCurrentWeatherByCoordinates(location, apiKey) {
   const requestUrl = new URL(
-    'https://api.openweathermap.org/data/3.0/onecall'
+    'https://api.openweathermap.org/data/2.5/weather'
   );
   requestUrl.searchParams.set('lat', location.lat);
   requestUrl.searchParams.set('lon', location.lon);
   requestUrl.searchParams.set('units', 'metric');
-  requestUrl.searchParams.set('exclude', 'minutely,hourly,alerts');
+  requestUrl.searchParams.set('appid', apiKey);
+
+  return requestJson(
+    requestUrl,
+    'Unable to fetch current weather data from OpenWeather.',
+    502
+  );
+}
+
+async function fetchForecastByCoordinates(location, apiKey) {
+  const requestUrl = new URL(
+    'https://api.openweathermap.org/data/2.5/forecast'
+  );
+  requestUrl.searchParams.set('lat', location.lat);
+  requestUrl.searchParams.set('lon', location.lon);
+  requestUrl.searchParams.set('units', 'metric');
   requestUrl.searchParams.set('appid', apiKey);
 
   return requestJson(
@@ -60,12 +75,16 @@ async function fetchWeatherByCoordinates(location, apiKey) {
 
 async function fetchFreshWeatherByCity(city, apiKey) {
   const location = await fetchCoordinatesForCity(city, apiKey);
-  const weatherData = await fetchWeatherByCoordinates(location, apiKey);
+  const [currentWeatherData, forecastWeatherData] = await Promise.all([
+    fetchCurrentWeatherByCoordinates(location, apiKey),
+    fetchForecastByCoordinates(location, apiKey)
+  ]);
 
   return normalizeWeatherPayload({
     query: city,
     location,
-    weatherData
+    currentWeatherData,
+    forecastWeatherData
   });
 }
 

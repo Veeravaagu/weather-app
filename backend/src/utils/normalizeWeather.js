@@ -10,35 +10,109 @@ function formatDayLabel(unixSeconds, timezoneOffsetSeconds) {
   return formatter.format(new Date(utcTimestamp));
 }
 
+function getLocalDayKey(unixSeconds, timezoneOffsetSeconds) {
+  const utcTimestamp = (unixSeconds + timezoneOffsetSeconds) * 1000;
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'UTC'
+  });
+
+  return formatter.format(new Date(utcTimestamp));
+}
+
 function normalizeCurrent(current) {
   return {
     temperature: current.temp ?? null,
     feelsLike: current.feels_like ?? null,
     humidity: current.humidity ?? null,
     pressure: current.pressure ?? null,
-    windSpeed: current.wind_speed ?? null,
-    uvIndex: current.uvi ?? null,
+    windSpeed: current.wind?.speed ?? null,
+    uvIndex: null,
     description: current.weather?.[0]?.description ?? 'Unavailable',
     icon: current.weather?.[0]?.icon ?? '',
-    precipitationProbability: Math.round((current.pop ?? 0) * 100),
-    sunrise: current.sunrise ?? null,
-    sunset: current.sunset ?? null
+    precipitationProbability: 0,
+    sunrise: current.sys?.sunrise ?? null,
+    sunset: current.sys?.sunset ?? null
   };
 }
 
-function normalizeDailyForecast(daily = [], timezoneOffsetSeconds = 0) {
-  return daily.slice(0, 7).map((day) => ({
-    date: day.dt ?? null,
-    label: formatDayLabel(day.dt, timezoneOffsetSeconds),
-    description: day.weather?.[0]?.description ?? 'Unavailable',
-    icon: day.weather?.[0]?.icon ?? '',
-    high: day.temp?.max ?? null,
-    low: day.temp?.min ?? null,
-    precipitationProbability: Math.round((day.pop ?? 0) * 100)
-  }));
+function normalizeDailyForecast(forecastItems = [], timezoneOffsetSeconds = 0) {
+  const dailyForecastMap = new Map();
+
+  forecastItems.forEach((item) => {
+    const dayKey = getLocalDayKey(item.dt, timezoneOffsetSeconds);
+    const existingDay = dailyForecastMap.get(dayKey);
+
+    if (!existingDay) {
+      dailyForecastMap.set(dayKey, {
+        date: item.dt ?? null,
+        label: formatDayLabel(item.dt, timezoneOffsetSeconds),
+        description: item.weather?.[0]?.description ?? 'Unavailable',
+        icon: item.weather?.[0]?.icon ?? '',
+        high: item.main?.temp_max ?? null,
+        low: item.main?.temp_min ?? null,
+        precipitationProbability: Math.round((item.pop ?? 0) * 100),
+        representativeHourDistance: Math.abs(
+          new Date((item.dt + timezoneOffsetSeconds) * 1000).getUTCHours() - 12
+        )
+      });
+
+      return;
+    }
+
+    if (typeof item.main?.temp_max === 'number') {
+      existingDay.high =
+        typeof existingDay.high === 'number'
+          ? Math.max(existingDay.high, item.main.temp_max)
+          : item.main.temp_max;
+    }
+
+    if (typeof item.main?.temp_min === 'number') {
+      existingDay.low =
+        typeof existingDay.low === 'number'
+          ? Math.min(existingDay.low, item.main.temp_min)
+          : item.main.temp_min;
+    }
+
+    existingDay.precipitationProbability = Math.max(
+      existingDay.precipitationProbability,
+      Math.round((item.pop ?? 0) * 100)
+    );
+
+    const hourDistanceFromNoon = Math.abs(
+      new Date((item.dt + timezoneOffsetSeconds) * 1000).getUTCHours() - 12
+    );
+
+    if (hourDistanceFromNoon < existingDay.representativeHourDistance) {
+      existingDay.description = item.weather?.[0]?.description ?? existingDay.description;
+      existingDay.icon = item.weather?.[0]?.icon ?? existingDay.icon;
+      existingDay.date = item.dt ?? existingDay.date;
+      existingDay.label = formatDayLabel(item.dt, timezoneOffsetSeconds);
+      existingDay.representativeHourDistance = hourDistanceFromNoon;
+    }
+  });
+
+  return Array.from(dailyForecastMap.values())
+    .slice(0, 7)
+    .map(({ representativeHourDistance, ...day }) => day);
 }
 
-function normalizeWeatherPayload({ query, location, weatherData }) {
+function normalizeWeatherPayload({
+  query,
+  location,
+  currentWeatherData,
+  forecastWeatherData
+}) {
+  const timezoneOffset =
+    forecastWeatherData.city?.timezone ?? currentWeatherData.timezone ?? 0;
+  const timezoneName = forecastWeatherData.city?.timezone_name ?? '';
+  const normalizedForecast = normalizeDailyForecast(
+    forecastWeatherData.list,
+    timezoneOffset
+  );
+
   return {
     query: {
       city: query
@@ -51,17 +125,14 @@ function normalizeWeatherPayload({ query, location, weatherData }) {
         lat: location.lat ?? null,
         lon: location.lon ?? null
       },
-      timezone: weatherData.timezone ?? '',
-      timezoneOffset: weatherData.timezone_offset ?? 0
+      timezone: timezoneName,
+      timezoneOffset
     },
-    current: normalizeCurrent(weatherData.current ?? {}),
-    forecast: normalizeDailyForecast(
-      weatherData.daily,
-      weatherData.timezone_offset ?? 0
-    ),
+    current: normalizeCurrent(currentWeatherData.main ? currentWeatherData : {}),
+    forecast: normalizedForecast,
     meta: {
       units: 'metric',
-      forecastDays: Math.min(weatherData.daily?.length ?? 0, 7)
+      forecastDays: normalizedForecast.length
     }
   };
 }
