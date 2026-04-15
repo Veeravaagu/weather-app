@@ -99,7 +99,7 @@ function attachCacheMetadata(payload, cacheDetails) {
 }
 
 async function fetchWeatherByCityWithCache(city, apiKey, ttlMs) {
-  const cachedEntry = weatherCache.get(city);
+  const cachedEntry = await weatherCache.get(city);
 
   if (cachedEntry) {
     console.log(`[weather-cache] HIT ${cachedEntry.key}`);
@@ -118,7 +118,7 @@ async function fetchWeatherByCityWithCache(city, apiKey, ttlMs) {
   console.log(`[weather-cache] MISS ${cacheKey}`);
 
   const freshPayload = await fetchFreshWeatherByCity(city, apiKey);
-  const cacheWrite = weatherCache.set(city, freshPayload, ttlMs);
+  const cacheWrite = await weatherCache.set(city, freshPayload, ttlMs);
 
   return attachCacheMetadata(freshPayload, {
     key: cacheWrite.key,

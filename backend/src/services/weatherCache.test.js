@@ -1,35 +1,44 @@
+const Redis = require('ioredis-mock');
 const weatherCache = require('./weatherCache');
+const {
+  closeRedisConnection,
+  setRedisClient
+} = require('./redisClient');
 
 describe('weatherCache', () => {
+  let redisMock;
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-04-15T12:00:00Z'));
-    weatherCache.clear();
+    redisMock = new Redis();
+    setRedisClient(redisMock);
   });
 
-  afterEach(() => {
-    weatherCache.clear();
+  afterEach(async () => {
+    await weatherCache.clear();
+    await closeRedisConnection();
     jest.useRealTimers();
   });
 
-  it('returns cached data for repeat lookups within the TTL window', () => {
+  it('returns cached data for repeat lookups within the TTL window', async () => {
     const payload = { location: { name: 'Buffalo' } };
 
-    weatherCache.set('Buffalo', payload, 60_000);
+    await weatherCache.set('Buffalo', payload, 60_000);
 
-    const entry = weatherCache.get('buffalo');
+    const entry = await weatherCache.get('buffalo');
 
     expect(entry).not.toBeNull();
     expect(entry.key).toBe('weather:buffalo');
     expect(entry.payload).toEqual(payload);
   });
 
-  it('returns null after the cache entry has expired', () => {
-    weatherCache.set('Buffalo', { id: 1 }, 60_000);
+  it('returns null after the cache entry has expired', async () => {
+    await weatherCache.set('Buffalo', { id: 1 }, 60_000);
 
     jest.advanceTimersByTime(60_001);
 
-    expect(weatherCache.get('Buffalo')).toBeNull();
+    await expect(weatherCache.get('Buffalo')).resolves.toBeNull();
   });
 
   it('normalizes city queries into the same cache key', () => {

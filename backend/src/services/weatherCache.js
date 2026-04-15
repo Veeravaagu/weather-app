@@ -1,4 +1,4 @@
-const cacheStore = new Map();
+const { getRedisClient } = require('./redisClient');
 
 function normalizeCityQuery(city) {
   return city.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -8,18 +8,16 @@ function buildCacheKey(city) {
   return `weather:${normalizeCityQuery(city)}`;
 }
 
-function get(city) {
+async function get(city) {
   const key = buildCacheKey(city);
-  const entry = cacheStore.get(key);
+  const redis = getRedisClient();
+  const cachedValue = await redis.get(key);
 
-  if (!entry) {
+  if (!cachedValue) {
     return null;
   }
 
-  if (Date.now() >= entry.expiresAt) {
-    cacheStore.delete(key);
-    return null;
-  }
+  const entry = JSON.parse(cachedValue);
 
   return {
     key,
@@ -29,16 +27,23 @@ function get(city) {
   };
 }
 
-function set(city, payload, ttlMs) {
+async function set(city, payload, ttlMs) {
   const key = buildCacheKey(city);
   const createdAt = Date.now();
   const expiresAt = createdAt + ttlMs;
+  const redis = getRedisClient();
+  const ttlSeconds = Math.max(Math.ceil(ttlMs / 1000), 1);
 
-  cacheStore.set(key, {
-    payload,
-    createdAt,
-    expiresAt
-  });
+  await redis.set(
+    key,
+    JSON.stringify({
+      payload,
+      createdAt,
+      expiresAt
+    }),
+    'EX',
+    ttlSeconds
+  );
 
   return {
     key,
@@ -51,8 +56,9 @@ function getTtlRemaining(expiresAt) {
   return Math.max(expiresAt - Date.now(), 0);
 }
 
-function clear() {
-  cacheStore.clear();
+async function clear() {
+  const redis = getRedisClient();
+  await redis.flushdb();
 }
 
 module.exports = {
