@@ -106,6 +106,9 @@ input {
   border-radius: 24px;
   padding: 28px;
   box-shadow: 0 16px 40px rgba(80, 115, 150, 0.12);
+  max-height: 75vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .panel-heading {
@@ -233,6 +236,10 @@ input {
   .hero,
   .panel {
     padding: 22px;
+  }
+
+  .panel {
+    max-height: 70vh;
   }
 
   .search-form {

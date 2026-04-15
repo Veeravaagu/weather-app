@@ -133,7 +133,7 @@ export default function WeatherCharts({ forecast = [] }) {
     >
       <div className="charts-heading">
         <h3 id="weather-charts-heading">Forecast Charts</h3>
-        <p>Temperature trends and precipitation probability for the next 7 days.</p>
+        <p>Temperature trends and precipitation probability for the next 5 days.</p>
       </div>
 
       <div className="chart-card">

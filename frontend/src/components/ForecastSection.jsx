@@ -15,12 +15,12 @@ export default function ForecastSection({ weather, isLoading }) {
     <section className="panel">
       <div className="panel-heading">
         <p className="eyebrow">Forecast</p>
-        <h2>7-Day Outlook</h2>
+        <h2>5-Day Outlook</h2>
       </div>
 
       {isLoading ? (
         <div className="placeholder-copy">
-          <p>Loading 7-day forecast...</p>
+          <p>Loading 5-day forecast...</p>
         </div>
       ) : forecast.length > 0 ? (
         <>
@@ -45,7 +45,7 @@ export default function ForecastSection({ weather, isLoading }) {
       ) : (
         <div className="placeholder-copy">
           <p>No forecast loaded yet.</p>
-          <p>Search for a city to view the next 7 days.</p>
+          <p>Search for a city to view the next 5 days.</p>
         </div>
       )}
     </section>

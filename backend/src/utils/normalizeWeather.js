@@ -24,10 +24,10 @@ function getLocalDayKey(unixSeconds, timezoneOffsetSeconds) {
 
 function normalizeCurrent(current) {
   return {
-    temperature: current.temp ?? null,
-    feelsLike: current.feels_like ?? null,
-    humidity: current.humidity ?? null,
-    pressure: current.pressure ?? null,
+    temperature: current.main?.temp ?? current.temp ?? null,
+    feelsLike: current.main?.feels_like ?? current.feels_like ?? null,
+    humidity: current.main?.humidity ?? current.humidity ?? null,
+    pressure: current.main?.pressure ?? current.pressure ?? null,
     windSpeed: current.wind?.speed ?? null,
     uvIndex: null,
     description: current.weather?.[0]?.description ?? 'Unavailable',
@@ -95,7 +95,7 @@ function normalizeDailyForecast(forecastItems = [], timezoneOffsetSeconds = 0) {
   });
 
   return Array.from(dailyForecastMap.values())
-    .slice(0, 7)
+    .slice(0, 5)
     .map(({ representativeHourDistance, ...day }) => day);
 }
 
@@ -128,7 +128,7 @@ function normalizeWeatherPayload({
       timezone: timezoneName,
       timezoneOffset
     },
-    current: normalizeCurrent(currentWeatherData.main ? currentWeatherData : {}),
+    current: normalizeCurrent(currentWeatherData ?? {}),
     forecast: normalizedForecast,
     meta: {
       units: 'metric',
